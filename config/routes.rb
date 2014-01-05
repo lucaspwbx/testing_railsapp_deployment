@@ -1,4 +1,6 @@
 TestingDeploy::Application.routes.draw do
+  resources :players
+
   resources :posts
 
   root 'posts#index'

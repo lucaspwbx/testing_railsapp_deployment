@@ -1,13 +1,31 @@
 set :application, "testing_deployment"
-set :repository,  "set your repository location here"
-
-# set :scm, :git # You can set :scm explicitly or Capistrano will make an intelligent guess based on known version control directory names
+set :repository,  "git://github.com/lucasweiblen/testing_railsapp_deployment"
+set :user, "vagrant"
+set :deploy_to, "/home/vagrant/apps/testing_deployment"
+set :use_sudo, false
+set :scm, :git # You can set :scm explicitly or Capistrano will make an intelligent guess based on known version control directory names
 # Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
 
-role :web, "your web-server here"                          # Your HTTP server, Apache/etc
-role :app, "your app-server here"                          # This may be the same as your `Web` server
-role :db,  "your primary db-server here", :primary => true # This is where Rails migrations will run
-role :db,  "your slave db-server here"
+server "192.168.1.4", :app, :web, :db, primary: true
+
+namespace :deploy do
+  task :start do
+    sudo "service nginx start"
+    sudo "service postgresql start"
+    run "cd #{current_path} && bundle exec unicorn -c config/unicorn.rb -E production -D"
+  end
+
+  task :stop do
+    sudo "service nginx stop"
+    sudo "service postgresql stop"
+    run "kill `cat /vagrant/tmp/unicorn_rails4demo.pid`"
+  end
+
+  task :restart do
+    stop
+    start
+  end
+end
 
 # if you want to clean up old releases on each deploy uncomment this:
 # after "deploy:restart", "deploy:cleanup"
